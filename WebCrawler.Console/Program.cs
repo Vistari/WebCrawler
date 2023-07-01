@@ -1,3 +1,37 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using WebCrawler.Console.Config;
+using WebCrawler.Console.Lib;
 
-Console.WriteLine("Hello, World!");
+namespace WebCrawler.Console;
+
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        using var host = CreateHostBuilder(args).Build();
+
+        await host.StartAsync();
+
+        using var scope = host.Services.CreateScope();
+        var worker = scope.ServiceProvider.GetService<IWebCrawlerService>();
+
+        await Parser.Default.ParseArguments<CmdLineArguments>(args).WithParsedAsync(async parsedArgs =>
+        {
+            await worker!.RunAsync(parsedArgs.Target);
+        });
+
+        await host.StopAsync();
+    }
+
+    private static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        return Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddScoped<IWebCrawlerService, WebCrawlerService>();
+                services.Configure<CrawlerOptions>(hostContext.Configuration.GetSection(CrawlerOptions.SectionName));
+            });
+    }
+}
