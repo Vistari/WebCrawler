@@ -15,4 +15,4 @@ RUN dotnet publish "WebCrawler.Console.csproj" -c Release -o /app/publish /p:Use
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-CMD ["dotnet", "WebCrawler.Console.dll"]
+ENTRYPOINT ["dotnet", "WebCrawler.Console.dll"]
