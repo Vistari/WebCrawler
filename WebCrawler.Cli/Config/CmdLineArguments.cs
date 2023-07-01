@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace WebCrawler.Console.Config;
+namespace WebCrawler.Cli.Config;
 
 public class CmdLineArguments
 {

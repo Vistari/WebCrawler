@@ -1,10 +1,10 @@
 ﻿using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using WebCrawler.Console.Config;
-using WebCrawler.Console.Lib;
+using WebCrawler.Cli.Config;
+using WebCrawler.Cli.Lib;
 
-namespace WebCrawler.Console;
+namespace WebCrawler.Cli;
 
 public class Program
 {

@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebCrawler.Console", "WebCrawler.Console\WebCrawler.Console.csproj", "{2A93D5BF-349F-4E42-B8FC-B9F1807B4212}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebCrawler.Cli", "WebCrawler.Cli\WebCrawler.Cli.csproj", "{2A93D5BF-349F-4E42-B8FC-B9F1807B4212}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-﻿namespace WebCrawler.Console.Config;
+﻿namespace WebCrawler.Cli.Config;
 
 public class CrawlerOptions
 {
