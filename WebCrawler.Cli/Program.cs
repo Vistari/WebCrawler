@@ -31,7 +31,6 @@ public class Program
             .ConfigureServices((hostContext, services) =>
             {
                 services.AddScoped<IWebCrawlerService, WebCrawlerService>();
-                services.Configure<CrawlerOptions>(hostContext.Configuration.GetSection(CrawlerOptions.SectionName));
             });
     }
 }

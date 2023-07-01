@@ -6,16 +6,13 @@ namespace WebCrawler.Cli.Lib;
 
 public class WebCrawlerService : IWebCrawlerService
 {
-    private readonly bool _crawlOnlyHost;
-    public WebCrawlerService(IOptions<CrawlerOptions> config)
+    public WebCrawlerService()
     {
-        _crawlOnlyHost = config.Value.CrawlOnlyHost;
     }
     
     public async Task RunAsync(string urlTarget)
     {
         Console.WriteLine($"Starting Crawler at {urlTarget}.");
-        Console.WriteLine($"Crawling only designated host: {_crawlOnlyHost}");
         await Task.Delay(10);
         
         Console.WriteLine("Crawler Complete.");
