@@ -7,7 +7,7 @@ public class ManagedBlockingCollection<T> : IDisposable, IEnumerable<T>
 {
     private readonly BlockingCollection<T> _queue;
     private volatile bool _autoCompleteStarted;
-    private volatile int _intervalMilliseconds = 5000;
+    private volatile int _intervalMilliseconds = 2000;
     private readonly Barrier _barrier;
     
     public ManagedBlockingCollection()

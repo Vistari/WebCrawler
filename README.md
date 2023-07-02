@@ -4,7 +4,7 @@
 ## Build Docker image
 Run the following command from the solution directory to build the docker image:
 ```dockerfile
-docker build --tag 'webcrawler:local' -f .\WebCrawler.Console\Dockerfile .
+docker build --tag 'webcrawler:local' -f .\WebCrawler.Cli\Dockerfile .
 ```
 
 ## Run the Docker image
