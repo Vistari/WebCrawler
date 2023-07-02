@@ -16,7 +16,7 @@ public class WebCrawlerService : IWebCrawlerService
     private readonly IHtmlParser _htmlParser;
 
     //State
-    private readonly BlockingCollection<CrawlerJob> _queue;
+    private readonly ManagedBlockingCollection<CrawlerJob> _queue;
     private readonly ConcurrentDictionary<string, Uri> _allValidKnownUrls;
     private Uri _rootSite;
 
@@ -27,7 +27,7 @@ public class WebCrawlerService : IWebCrawlerService
 
     public WebCrawlerService(IWebpageService webpageService, IHtmlParser htmlParser)
     {
-        _queue = new BlockingCollection<CrawlerJob>();
+        _queue = new ManagedBlockingCollection<CrawlerJob>();
         _webpageService = webpageService;
         _htmlParser = htmlParser;
         _allValidKnownUrls = new ConcurrentDictionary<string, Uri>();
@@ -47,29 +47,21 @@ public class WebCrawlerService : IWebCrawlerService
         var timer = new Stopwatch();
         timer.Start();
 
-        Barrier barrier = new Barrier(0, _ =>
-        {
-            if (_queue.Count == 0)
-            {
-                _queue.CompleteAdding();
-            }
-        });
+        _queue.BeginObservingAutoComplete();
 
-        Parallel.ForEach(_queue.GetConsumingEnumerable(), (job) =>
+        var actions = Enumerable.Repeat(() =>
         {
-            barrier.AddParticipant();
-            if (!_queue.IsCompleted)
+            foreach (var job in _queue.GetConsumingEnumerable())
             {
-                var urls = ProcessPage(job).Result;
+                var urls = ProcessPage(new CrawlerJob(job.Url)).Result;
+                OutputResult(job.Url, urls);
             }
-            else
-            {
-                barrier.SignalAndWait();
-            }
-            
-            barrier.SignalAndWait(500);
-            barrier.RemoveParticipant();
-        });
+        }, 16).ToArray();
+        
+        while (!_queue.IsCompleted)
+        {
+            Parallel.Invoke(actions);
+        }
         
         timer.Stop();
         Console.WriteLine("Time taken: " + timer.Elapsed.ToString(@"m\:ss\.fff"));
@@ -79,20 +71,13 @@ public class WebCrawlerService : IWebCrawlerService
 
     private void OutputResult(string url, List<string> results)
     {
-        Console.WriteLine("---------------");
-        Console.WriteLine(url);
-        Console.WriteLine("---------------");
-        if (!results.Any())
-        {
-            Console.WriteLine("No links found.");
-        }
-        else
-        {
-            results.ForEach(Console.WriteLine);
-        }
-
-        Console.WriteLine("---------------");
-        Console.WriteLine();
+        Console.Write(
+            "\n------------\n" +
+            url +
+            "\n------------\n" +
+            (!results.Any() ? "No Links Found." : string.Join("\n", results )) +
+            "\n------------\n"
+        );
     }
 
     private async Task<List<string>> ProcessPage(CrawlerJob job)
@@ -124,8 +109,13 @@ public class WebCrawlerService : IWebCrawlerService
                 }
                 else
                 {
-                    //If the link starts with a / then it's relative to the root otherwise it's relative to the current location
-                    if (link.StartsWith("/"))
+                    //If the link starts with a www. then we should append a scheme
+                    if (link.StartsWith("www."))
+                    {
+                        processedUri = new Uri($"https://{link}");
+                    }
+                    //if it begins wtih / then it's relative to the root
+                    else if (link.StartsWith("/"))
                     {
                         processedUri = _rootSite.Append(link);
                     }
