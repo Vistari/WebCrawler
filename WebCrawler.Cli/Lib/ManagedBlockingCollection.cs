@@ -15,9 +15,7 @@ public class ManagedBlockingCollection<T> : IDisposable, IEnumerable<T>
         _queue = new BlockingCollection<T>();
         _barrier = new(0, _ => _queue.CompleteAdding());
     }
-
-    public int Count => _queue.Count;
-    public bool IsAddingCompleted => _queue.IsAddingCompleted;
+    
     public bool IsCompleted => _queue.IsCompleted;
     
     public void BeginObservingAutoComplete() => _autoCompleteStarted = true;
@@ -25,8 +23,6 @@ public class ManagedBlockingCollection<T> : IDisposable, IEnumerable<T>
     public void Add(T item, CancellationToken cancellationToken = default)
         => _queue.Add(item, cancellationToken);
     
-    public bool TryAdd(T item) => _queue.TryAdd(item);
-
     public IEnumerable<T> GetConsumingEnumerable(
         CancellationToken cancellationToken = default)
     {
