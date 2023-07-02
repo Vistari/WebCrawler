@@ -36,6 +36,11 @@ public class WebCrawlerService : IWebCrawlerService
 
     public async Task RunAsync(string urlTarget)
     {
+        if (string.IsNullOrEmpty(urlTarget))
+        {
+            throw new ArgumentException($"{nameof(urlTarget)} cannot be null or empty");
+        }
+        
         Console.WriteLine($"Starting Crawler at {urlTarget}.");
 
         //Setup initial data
