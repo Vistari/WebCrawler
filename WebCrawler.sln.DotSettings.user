@@ -1,10 +1,5 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\Matthew\AppData\Local\JetBrains\Rider2023.1\resharper-host\temp\Rider\vAny\CoverageData\_WebCrawler.288588223\Snapshot\snapshot.utdcvr</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7c179aee_002D9df8_002D43bf_002D96ae_002D7376b3ac423a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="UriExtensions_UriCorrectlyCombined" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::28E6EBE5-86EB-47B5-8619-3C3E6EC48E55::net7.0::WebCrawler.Cli.Tests.Helpers.UriExtensionsTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::28E6EBE5-86EB-47B5-8619-3C3E6EC48E55::net7.0::WebCrawler.Cli.Tests.Lib.HtmlParserTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::28E6EBE5-86EB-47B5-8619-3C3E6EC48E55::net7.0::WebCrawler.Cli.Tests.Lib.WebpageServiceTests.WebpageService_GetWebpage_UnexpectedSchemeReturnsNull&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::28E6EBE5-86EB-47B5-8619-3C3E6EC48E55::net7.0::WebCrawler.Cli.Tests.Lib.WebpageServiceTests.WebpageService_GetWebpage_NotUsableMediaTypeReturnsNull&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::28E6EBE5-86EB-47B5-8619-3C3E6EC48E55::net7.0::WebCrawler.Cli.Tests.Lib.WebpageServiceTests.WebpageService_GetWebpage_UsableMediaTypeReturnsResponseContent&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

@@ -18,23 +18,25 @@ public class WebCrawlerService : IWebCrawlerService
     //State
     private readonly ManagedBlockingCollection<CrawlerJob> _queue;
     private readonly ConcurrentDictionary<string, Uri> _allValidKnownUrls;
+    private readonly ConcurrentDictionary<string, List<string>> _results;
     private Uri _rootSite;
 
     private readonly List<string> _invalidQualifiers =
-        new() { "mailto:", "sms:", "tel:", "#", "sms:", "javascript:", "monzo:" };
+        new() { "mailto:", "sms:", "tel:", "#", "javascript:", "monzo:" };
 
     private readonly List<string> _fullQualifiers = new() { "http:", "https:" };
 
     public WebCrawlerService(IWebpageService webpageService, IHtmlParser htmlParser)
     {
         _queue = new ManagedBlockingCollection<CrawlerJob>();
+        _results = new ConcurrentDictionary<string, List<string>>();
         _webpageService = webpageService;
         _htmlParser = htmlParser;
         _allValidKnownUrls = new ConcurrentDictionary<string, Uri>();
     }
 
 
-    public async Task RunAsync(string urlTarget)
+    public async Task<ConcurrentDictionary<string, List<string>>> RunAsync(string urlTarget)
     {
         if (string.IsNullOrEmpty(urlTarget))
         {
@@ -60,6 +62,7 @@ public class WebCrawlerService : IWebCrawlerService
             {
                 var urls = ProcessPage(new CrawlerJob(job.Url)).Result;
                 OutputResult(job.Url, urls);
+                _results.TryAdd(job.Url, urls);
             }
         }, 16).ToArray();
         
@@ -72,6 +75,7 @@ public class WebCrawlerService : IWebCrawlerService
         Console.WriteLine("Time taken: " + timer.Elapsed.ToString(@"m\:ss\.fff"));
         Console.WriteLine($"{_allValidKnownUrls.Count} unique urls within the domain found.");
         Console.WriteLine("Crawler Complete.");
+        return _results;
     }
 
     private void OutputResult(string url, List<string> results)

@@ -1,6 +1,8 @@
-﻿namespace WebCrawler.Cli.Lib;
+﻿using System.Collections.Concurrent;
+
+namespace WebCrawler.Cli.Lib;
 
 public interface IWebCrawlerService
 {
-    Task RunAsync(string urlTarget);
+    Task<ConcurrentDictionary<string, List<string>>> RunAsync(string urlTarget);
 }

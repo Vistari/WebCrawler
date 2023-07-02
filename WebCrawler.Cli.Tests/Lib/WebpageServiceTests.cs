@@ -11,7 +11,7 @@ namespace WebCrawler.Cli.Tests.Lib;
 public class WebpageServiceTests
 {
     private readonly WebpageService _webpageService;
-    private Mock<HttpMessageHandler> _mockHttpMessageHandler;
+    private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
 
     public WebpageServiceTests()
     {
