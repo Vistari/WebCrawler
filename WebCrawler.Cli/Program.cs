@@ -31,6 +31,9 @@ public class Program
             .ConfigureServices((hostContext, services) =>
             {
                 services.AddScoped<IWebCrawlerService, WebCrawlerService>();
+                services.AddScoped<IWebpageService, WebpageService>();
+                services.AddScoped<IHtmlParser, HtmlParser>();
+                services.AddScoped<HttpClient>();
             });
     }
 }
