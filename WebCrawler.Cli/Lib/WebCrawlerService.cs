@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using WebCrawler.Cli.Config;
 using WebCrawler.Cli.Helpers;
@@ -14,36 +16,45 @@ public class WebCrawlerService : IWebCrawlerService
     private readonly IHtmlParser _htmlParser;
 
     //State
-    private readonly Queue<CrawlerJob> _queue;
-    private readonly List<string> _allValidKnownUrls;
+    private readonly BlockingCollection<CrawlerJob> _queue;
+    private readonly ConcurrentDictionary<string, Uri> _allValidKnownUrls;
     private Uri _rootSite;
-    
-    private readonly List<string> _invalidQualifiers = new() { "mailto:", "sms:", "tel:", "#", "sms:", "javascript:", "monzo:" };
 
+    private readonly List<string> _invalidQualifiers =
+        new() { "mailto:", "sms:", "tel:", "#", "sms:", "javascript:", "monzo:" };
 
     public WebCrawlerService(IWebpageService webpageService, IHtmlParser htmlParser)
     {
-        _queue = new Queue<CrawlerJob>();
+        _queue = new BlockingCollection<CrawlerJob>();
         _webpageService = webpageService;
         _htmlParser = htmlParser;
-        _allValidKnownUrls = new List<string>();
+        _allValidKnownUrls = new ConcurrentDictionary<string, Uri>();
     }
+
 
     public async Task RunAsync(string urlTarget)
     {
         Console.WriteLine($"Starting Crawler at {urlTarget}.");
 
         //Setup initial data
-        _queue.Enqueue(new CrawlerJob(urlTarget));
-        _allValidKnownUrls.Add(urlTarget);
+        _queue.Add(new CrawlerJob(urlTarget));
         _rootSite = new Uri(urlTarget);
-        
-        while (_queue.Count > 0)
+        _allValidKnownUrls.TryAdd(urlTarget, _rootSite);
+
+        //Timer to provider processing duration
+        var timer = new Stopwatch();
+        timer.Start();
+
+        Parallel.ForEach(_queue.GetConsumingEnumerable(), new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (job) =>
         {
-            var job = _queue.Dequeue();
-            var urls = await ProcessPage(job);
-            OutputResult(job.Url, urls);
-        }
+            Console.WriteLine($"Processing {job.Url}");
+            var urls = ProcessPage(job).Result;
+            Console.WriteLine($"Processed {job.Url}");
+        });
+
+        timer.Stop();
+        Console.WriteLine("Time taken: " + timer.Elapsed.ToString(@"m\:ss\.fff"));
+        Console.WriteLine($"{_allValidKnownUrls.Count} unique urls within the domain found.");
         Console.WriteLine("Crawler Complete.");
     }
 
@@ -60,6 +71,7 @@ public class WebCrawlerService : IWebCrawlerService
         {
             results.ForEach(Console.WriteLine);
         }
+
         Console.WriteLine("---------------");
         Console.WriteLine();
     }
@@ -112,11 +124,11 @@ public class WebCrawlerService : IWebCrawlerService
                 }
 
                 var uriString = processedUri.ToString();
-                //If we've not previously found the url (or it's not the url we are on right now) then we can add it to the queue and list of known urls
-                if (!_allValidKnownUrls.Any(x => x.Equals(uriString)))
+                //If we've not previously found the url then we can add it to the queue and list of known urls
+                if (_allValidKnownUrls.TryAdd(uriString, processedUri))
                 {
-                    _queue.Enqueue(new CrawlerJob(uriString));
-                    _allValidKnownUrls.Add(uriString);
+                    //If we've been able to add it to the dictionary then it's a new url so we should also crawl it
+                    _queue.Add(new CrawlerJob(uriString));
                 }
             }
 
