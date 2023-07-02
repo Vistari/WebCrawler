@@ -23,6 +23,8 @@ public class WebCrawlerService : IWebCrawlerService
     private readonly List<string> _invalidQualifiers =
         new() { "mailto:", "sms:", "tel:", "#", "sms:", "javascript:", "monzo:" };
 
+    private readonly List<string> _fullQualifiers = new() { "http:", "https:" };
+
     public WebCrawlerService(IWebpageService webpageService, IHtmlParser htmlParser)
     {
         _queue = new BlockingCollection<CrawlerJob>();
@@ -40,18 +42,35 @@ public class WebCrawlerService : IWebCrawlerService
         _queue.Add(new CrawlerJob(urlTarget));
         _rootSite = new Uri(urlTarget);
         _allValidKnownUrls.TryAdd(urlTarget, _rootSite);
-
+        
         //Timer to provider processing duration
         var timer = new Stopwatch();
         timer.Start();
 
-        Parallel.ForEach(_queue.GetConsumingEnumerable(), new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (job) =>
+        Barrier barrier = new Barrier(0, _ =>
         {
-            Console.WriteLine($"Processing {job.Url}");
-            var urls = ProcessPage(job).Result;
-            Console.WriteLine($"Processed {job.Url}");
+            if (_queue.Count == 0)
+            {
+                _queue.CompleteAdding();
+            }
         });
 
+        Parallel.ForEach(_queue.GetConsumingEnumerable(), (job) =>
+        {
+            barrier.AddParticipant();
+            if (!_queue.IsCompleted)
+            {
+                var urls = ProcessPage(job).Result;
+            }
+            else
+            {
+                barrier.SignalAndWait();
+            }
+            
+            barrier.SignalAndWait(500);
+            barrier.RemoveParticipant();
+        });
+        
         timer.Stop();
         Console.WriteLine("Time taken: " + timer.Elapsed.ToString(@"m\:ss\.fff"));
         Console.WriteLine($"{_allValidKnownUrls.Count} unique urls within the domain found.");
@@ -99,7 +118,7 @@ public class WebCrawlerService : IWebCrawlerService
                 Uri? processedUri = null;
 
                 //Check if link is fully qualified then construct the link, appending if it's a relative link
-                if (link.ToLower().StartsWith("http:") || link.ToLower().StartsWith("https:"))
+                if (_fullQualifiers.Any(x => link.ToLower().StartsWith(x)))
                 {
                     processedUri = new Uri(link);
                 }
@@ -128,6 +147,7 @@ public class WebCrawlerService : IWebCrawlerService
                 if (_allValidKnownUrls.TryAdd(uriString, processedUri))
                 {
                     //If we've been able to add it to the dictionary then it's a new url so we should also crawl it
+                    //barrier.AddParticipant();
                     _queue.Add(new CrawlerJob(uriString));
                 }
             }
