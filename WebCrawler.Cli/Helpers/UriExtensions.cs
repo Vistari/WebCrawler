@@ -17,7 +17,7 @@ public static class UriExtensions
         //Remove any null/empty entries
         uriSections = uriSections.Where(x => !string.IsNullOrEmpty(x)).ToList();
         
-        var uriBuilder = new UriBuilder()
+        var uriBuilder = new UriBuilder
         {
             Scheme = uri.Scheme,
             Host = uri.Host

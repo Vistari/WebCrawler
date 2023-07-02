@@ -7,7 +7,7 @@ public class ManagedBlockingCollection<T> : IDisposable, IEnumerable<T>
 {
     private readonly BlockingCollection<T> _queue;
     private volatile bool _autoCompleteStarted;
-    private volatile int _intervalMilliseconds = 2000;
+    private const int IntervalMilliseconds = 2000;
     private readonly Barrier _barrier;
     
     public ManagedBlockingCollection()
@@ -33,16 +33,14 @@ public class ManagedBlockingCollection<T> : IDisposable, IEnumerable<T>
             {
                 if (!_autoCompleteStarted)
                 {
-                    if (_queue.TryTake(out var item, _intervalMilliseconds,
-                            cancellationToken))
+                    if (_queue.TryTake(out var item, IntervalMilliseconds, cancellationToken))
                         yield return item;
                 }
                 else
                 {
                     if (_queue.TryTake(out var item, 0, cancellationToken))
                         yield return item;
-                    else if (_barrier.SignalAndWait(_intervalMilliseconds,
-                                 cancellationToken))
+                    else if (_barrier.SignalAndWait(IntervalMilliseconds, cancellationToken))
                         break;
                 }
             }

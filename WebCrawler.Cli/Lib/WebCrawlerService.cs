@@ -1,8 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
-using WebCrawler.Cli.Config;
 using WebCrawler.Cli.Helpers;
 using WebCrawler.Common.Models;
 using Console = System.Console;
@@ -105,25 +102,24 @@ public class WebCrawlerService : IWebCrawlerService
         // Add valid links to result and unvisited links to queue
         foreach (var link in parsedLinks)
         {
+            // If the link can't be processed, skip processing it
             if (IsProcessableLink(link))
             {
-                // If the link can't be processed, skip processing it
-
                 Uri? processedUri = null;
 
-                //Check if link is fully qualified then construct the link, appending if it's a relative link
+                // Check if link is fully qualified then construct the link, appending if it's a relative link
                 if (_fullQualifiers.Any(x => link.ToLower().StartsWith(x)))
                 {
                     processedUri = new Uri(link);
                 }
                 else
                 {
-                    //If the link starts with a www. then we should append a scheme
+                    // If the link starts with a www. then we should append a scheme
                     if (link.StartsWith("www."))
                     {
                         processedUri = new Uri($"https://{link}");
                     }
-                    //if it begins wtih / then it's relative to the root
+                    // If it begins with / then it's relative to the root
                     else if (link.StartsWith("/"))
                     {
                         processedUri = _rootSite.Append(link);
@@ -132,26 +128,24 @@ public class WebCrawlerService : IWebCrawlerService
                     {
                         processedUri = job.Uri.Append(link);
                     }
-                    //processedUri = link.StartsWith("/") ? _rootSite.Append(link) : job.Uri.Append(link);
                 }
 
                 if (job.Uri.Host != processedUri.Host)
                 {
-                    //If the host of the url to process isn't the same host as we are already crawling, skip it
+                    // If the host of the url to process isn't the same host as we are already crawling, skip it
                     continue;
                 }
 
                 var uriString = processedUri.ToString();
-                //If we've not previously found the url then we can add it to the queue and list of known urls
+                // If we've not previously found the url then we can add it to the queue and list of known urls
                 if (_allValidKnownUrls.TryAdd(uriString, processedUri))
                 {
-                    //If we've been able to add it to the dictionary then it's a new url so we should also crawl it
-                    //barrier.AddParticipant();
+                    // If we've been able to add it to the dictionary then it's a new url so we should also crawl it
                     _queue.Add(new CrawlerJob(uriString));
                 }
             }
 
-            //Add the link to the results if it hasn't already been added (there might be duplicates on the same page)
+            // Add the link to the results if it hasn't already been added (there might be duplicates on the same page)
             if (!results.Any(x => x.Equals(link)))
             {
                 results.Add(link);
